@@ -33,8 +33,17 @@ export function AuthProvider({ children }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  // Without an explicit emailRedirectTo, Supabase falls back to whatever
+  // "Site URL" is configured in its dashboard — which defaults to
+  // http://localhost:3000 on a fresh project and silently sends every
+  // magic-link click there regardless of where the app is actually
+  // running. Pointing this at the current origin makes it correct in dev,
+  // preview, and production automatically, with no dashboard-drift risk.
   const signInWithEmail = async (email) => {
-    const { error } = await supabase.auth.signInWithOtp({ email });
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.origin },
+    });
     if (error) throw error;
   };
 
