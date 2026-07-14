@@ -4,11 +4,9 @@ import { getSupabaseAdmin } from '../lib/supabaseAdmin.js';
 import { getFreeBusy } from '../lib/googleCalendar.js';
 import { findSlotsForChunks } from '../lib/scheduler.js';
 import { AppError } from '../lib/errors.js';
-import { createRateLimiter } from '../middleware/rateLimit.js';
 
 export const scheduleRouter = Router();
 
-const perIpLimiter = createRateLimiter({ limit: 20 });
 const SEARCH_HORIZON_DAYS = 7;
 
 /**
@@ -18,7 +16,7 @@ const SEARCH_HORIZON_DAYS = 7;
  * /api/chunk — interval placement is a deterministic algorithm (scheduler.js),
  * not something delegated to the LLM.
  */
-scheduleRouter.post('/schedule', perIpLimiter, requireAuth, async (req, res, next) => {
+scheduleRouter.post('/schedule', requireAuth, async (req, res, next) => {
   try {
     const chunkIds = req.body?.chunkIds;
     if (!Array.isArray(chunkIds) || chunkIds.length === 0) {

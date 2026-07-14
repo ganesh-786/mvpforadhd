@@ -2,14 +2,10 @@ import { Router } from 'express';
 import { upload } from '../middleware/upload.js';
 import { transcribeSegment, AppError } from '../lib/groqClient.js';
 import { checkAndConsumeQuota } from '../lib/quotaGuard.js';
-import { createRateLimiter } from '../middleware/rateLimit.js';
 
 export const transcribeRouter = Router();
 
-// Guards against a runaway/miscalibrated client-side VAD loop hammering the endpoint.
-const perIpLimiter = createRateLimiter({ limit: 20 });
-
-transcribeRouter.post('/transcribe', perIpLimiter, upload.single('audio'), async (req, res, next) => {
+transcribeRouter.post('/transcribe', upload.single('audio'), async (req, res, next) => {
   try {
     if (!req.file) {
       throw new AppError('BAD_AUDIO', 'No audio file provided.', 400);

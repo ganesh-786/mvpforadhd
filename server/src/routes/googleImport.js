@@ -3,11 +3,8 @@ import { requireAuth } from '../middleware/requireAuth.js';
 import { getSupabaseAdmin } from '../lib/supabaseAdmin.js';
 import { listTasks } from '../lib/googleTasks.js';
 import { listCourseworkDueSoon } from '../lib/googleClassroom.js';
-import { createRateLimiter } from '../middleware/rateLimit.js';
 
 export const googleImportRouter = Router();
-
-const perIpLimiter = createRateLimiter({ limit: 10 });
 
 const TASK_DEFAULT_MINUTES = 15;
 const COURSEWORK_DEFAULT_MINUTES = 30;
@@ -43,7 +40,7 @@ function mapChunkRowToApi(c) {
  * Each source is fetched independently — one failing (e.g. scope not
  * granted) doesn't block ingesting the other.
  */
-googleImportRouter.post('/google/ingest', perIpLimiter, requireAuth, async (req, res) => {
+googleImportRouter.post('/google/ingest', requireAuth, async (req, res) => {
   const db = getSupabaseAdmin();
 
   const [tasksResult, courseworkResult] = await Promise.allSettled([

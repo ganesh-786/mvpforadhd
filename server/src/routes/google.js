@@ -3,13 +3,10 @@ import { requireAuth } from '../middleware/requireAuth.js';
 import { getSupabaseAdmin } from '../lib/supabaseAdmin.js';
 import { getFreeBusy, createEvent, updateEvent, deleteEvent } from '../lib/googleCalendar.js';
 import { AppError } from '../lib/errors.js';
-import { createRateLimiter } from '../middleware/rateLimit.js';
 
 export const googleRouter = Router();
 
-const perIpLimiter = createRateLimiter({ limit: 30 });
-
-googleRouter.get('/google/freebusy', perIpLimiter, requireAuth, async (req, res, next) => {
+googleRouter.get('/google/freebusy', requireAuth, async (req, res, next) => {
   try {
     const timeMin = req.query.timeMin || new Date().toISOString();
     const timeMax = req.query.timeMax || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -25,7 +22,7 @@ googleRouter.get('/google/freebusy', perIpLimiter, requireAuth, async (req, res,
  * records the chunk<->event mapping in calendar_sync in the same request —
  * this is what the real "Add to calendar" button calls.
  */
-googleRouter.post('/google/calendar/events', perIpLimiter, requireAuth, async (req, res, next) => {
+googleRouter.post('/google/calendar/events', requireAuth, async (req, res, next) => {
   try {
     const { chunkId } = req.body || {};
     if (!chunkId) throw new AppError('BAD_REQUEST', 'chunkId is required.', 400);
@@ -66,7 +63,7 @@ googleRouter.post('/google/calendar/events', perIpLimiter, requireAuth, async (r
   }
 });
 
-googleRouter.patch('/google/calendar/events/:chunkId', perIpLimiter, requireAuth, async (req, res, next) => {
+googleRouter.patch('/google/calendar/events/:chunkId', requireAuth, async (req, res, next) => {
   try {
     const { chunkId } = req.params;
     const db = getSupabaseAdmin();
@@ -88,7 +85,7 @@ googleRouter.patch('/google/calendar/events/:chunkId', perIpLimiter, requireAuth
   }
 });
 
-googleRouter.delete('/google/calendar/events/:chunkId', perIpLimiter, requireAuth, async (req, res, next) => {
+googleRouter.delete('/google/calendar/events/:chunkId', requireAuth, async (req, res, next) => {
   try {
     const { chunkId } = req.params;
     const db = getSupabaseAdmin();

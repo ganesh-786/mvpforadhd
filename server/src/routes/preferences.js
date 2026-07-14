@@ -1,11 +1,8 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { getSupabaseAdmin } from '../lib/supabaseAdmin.js';
-import { createRateLimiter } from '../middleware/rateLimit.js';
 
 export const preferencesRouter = Router();
-
-const perIpLimiter = createRateLimiter({ limit: 60 });
 
 const DEFAULT_PREFERENCES = {
   focus_session_minutes: 25,
@@ -17,7 +14,7 @@ function sendError(res, status, code, message) {
   res.status(status).json({ error: { code, message } });
 }
 
-preferencesRouter.get('/preferences', perIpLimiter, requireAuth, async (req, res) => {
+preferencesRouter.get('/preferences', requireAuth, async (req, res) => {
   const { data, error } = await getSupabaseAdmin()
     .from('user_preferences')
     .select('focus_session_minutes, working_hours, energy_pattern')
@@ -33,7 +30,7 @@ preferencesRouter.get('/preferences', perIpLimiter, requireAuth, async (req, res
   res.json({ ...(data || DEFAULT_PREFERENCES), exists: Boolean(data) });
 });
 
-preferencesRouter.put('/preferences', perIpLimiter, requireAuth, async (req, res) => {
+preferencesRouter.put('/preferences', requireAuth, async (req, res) => {
   const { focusSessionMinutes, workingHours, energyPattern } = req.body || {};
 
   if (!Number.isInteger(focusSessionMinutes) || focusSessionMinutes < 5 || focusSessionMinutes > 240) {

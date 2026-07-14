@@ -4,11 +4,8 @@ import { getSupabaseAdmin } from '../lib/supabaseAdmin.js';
 import { chunkTranscript } from '../lib/groqChat.js';
 import { AppError } from '../lib/errors.js';
 import { checkAndConsumeQuota } from '../lib/quotaGuard.js';
-import { createRateLimiter } from '../middleware/rateLimit.js';
 
 export const chunkRouter = Router();
-
-const perIpLimiter = createRateLimiter({ limit: 30 });
 
 async function loadPreferences(userId) {
   const { data } = await getSupabaseAdmin()
@@ -19,7 +16,7 @@ async function loadPreferences(userId) {
   return { focusSessionMinutes: data?.focus_session_minutes || 25 };
 }
 
-chunkRouter.post('/chunk', perIpLimiter, requireAuth, async (req, res, next) => {
+chunkRouter.post('/chunk', requireAuth, async (req, res, next) => {
   try {
     const transcript = (req.body?.transcript || '').trim();
     if (!transcript) {
